@@ -1,5 +1,5 @@
 /**
- * Open Double Ratchet Algorithm
+ * OpenSignal protocol utilities
  * 
  * Copyright (C) 2025  Christian Braghette
  * 
@@ -101,8 +101,9 @@ export function numberToUint8Array(number?: number, length?: number): Uint8Array
  * @returns A boolean value.
  */
 export function verifyUint8Array(a?: Uint8Array, ...b: (Uint8Array | undefined)[]): boolean {
-    if (!a) return false;
-    return b.every(b => nacl.verify(a, b ?? new Uint8Array()));
+    b = b.filter(value => value !== undefined);
+    if (!a || b.length === 0) return false;
+    return (b as Uint8Array[]).every(b => nacl.verify(a, b));
 }
 
 /**

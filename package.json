@@ -1,19 +1,28 @@
 {
   "name": "@opensignal/utils",
   "version": "1.0.0",
-  "description": "Utils package for OpenSignal protocol.",
+  "description": "Utils package for OpenSignal protocol",
+  "homepage": "https://github.com/christianbraghette/opensignal-utils#readme",
+  "bugs": {
+    "url": "https://github.com/christianbraghette/opensignal-utils/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christianbraghette/opensignal-utils.git"
+  },
   "license": "GPL-3.0-or-later",
   "author": "Christian Braghette",
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "npm ./build/test.js"
-  },
-  "devDependencies": {
-    "@types/node": "^22.15.21"
+    "test": "npm ./build/test.js",
+    "build": "tsc && node ./build/build.js"
   },
   "dependencies": {
     "base64-js": "^1.5.1",
     "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21"
   }
 }
