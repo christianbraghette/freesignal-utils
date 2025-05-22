@@ -1,5 +1,5 @@
 /**
- * OpenSignal protocol utilities
+ * FreeSignal protocol utilities
  * 
  * Copyright (C) 2025  Christian Braghette
  * 

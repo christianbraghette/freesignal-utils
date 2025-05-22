@@ -1,5 +1,5 @@
 {
-  "name": "@opensignal/utils",
+  "name": "@freesignal/utils",
   "version": "1.0.0",
   "description": "Utils package for OpenSignal protocol",
   "homepage": "https://github.com/christianbraghette/opensignal-utils#readme",
