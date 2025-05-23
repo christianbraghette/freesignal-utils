@@ -15,7 +15,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "npm ./build/test.js",
+    "test": "tsc && node ./build/test.js",
     "build": "tsc && node ./build/build.js"
   },
   "dependencies": {

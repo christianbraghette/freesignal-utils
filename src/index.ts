@@ -60,6 +60,21 @@ export function decodeBase64(string?: string): Uint8Array {
     return toByteArray(string ?? "");
 }
 
+export function encodeHex(array?: Uint8Array) {
+    return Array.from(array?.values() ?? []).map(value => value.toString(16).padStart(2, '0')).join('');
+}
+
+export function decodeHex(string?: string) {
+    return new Uint8Array(!string ? [] : 
+        Array.from(string).reduce<string[]>((prev, curr, index) => {
+        if (index % 2 === 0)
+            prev.push(curr);
+        else
+            prev[prev.length - 1] += curr;
+        return prev;
+    }, []).map(value => Number.parseInt(value, 16)));
+}
+
 /**
  * Converts a Uint8Array into a number (little-endian).
  *
