@@ -18,7 +18,7 @@
  */
 
 import { toByteArray, fromByteArray } from "base64-js"
-import nacl from "tweetnacl";
+import { verify } from "tweetnacl";
 
 /**
  * Decodes a Uint8Array into a UTF-8 string.
@@ -65,38 +65,40 @@ export function encodeHex(array?: Uint8Array) {
 }
 
 export function decodeHex(string?: string) {
-    return new Uint8Array(!string ? [] : 
+    return new Uint8Array(!string ? [] :
         Array.from(string).reduce<string[]>((prev, curr, index) => {
-        if (index % 2 === 0)
-            prev.push(curr);
-        else
-            prev[prev.length - 1] += curr;
-        return prev;
-    }, []).map(value => Number.parseInt(value, 16)));
+            if (index % 2 === 0)
+                prev.push(curr);
+            else
+                prev[prev.length - 1] += curr;
+            return prev;
+        }, []).map(value => Number.parseInt(value, 16)));
 }
 
 /**
- * Converts a Uint8Array into a number (little-endian).
+ * Converts a Uint8Array into a number.
  *
  * @param array - The input byte array.
  * @returns The resulting number.
  */
-export function numberFromUint8Array(array?: Uint8Array): number {
+export function numberFromUint8Array(array?: Uint8Array, endian: 'big' | 'little' = 'little'): number {
     let total = 0;
-    if (array)
+    if (array) {
+        if (endian === 'big') array = array.reverse();
         for (let c = 0; c < array.length; c++)
             total += array[c] << (c * 8);
+    }
     return total;
 }
 
 /**
- * Converts a number into a Uint8Array of specified length (little-endian).
+ * Converts a number into a Uint8Array of specified length.
  *
  * @param number - The number to convert.
  * @param length - The desired output length.
  * @returns A Uint8Array representing the number.
  */
-export function numberToUint8Array(number?: number, length?: number): Uint8Array {
+export function numberToUint8Array(number?: number, length?: number, endian: 'big' | 'little' = 'little'): Uint8Array {
     if (!number) return new Uint8Array(length ?? 0).fill(0);
     const arr: number[] = [];
     while (number > 0) {
@@ -105,7 +107,7 @@ export function numberToUint8Array(number?: number, length?: number): Uint8Array
     }
     const out = new Uint8Array(length ?? arr.length);
     out.set(arr);
-    return out;
+    return endian === 'little' ? out : out.reverse();
 }
 
 /**
@@ -118,7 +120,7 @@ export function numberToUint8Array(number?: number, length?: number): Uint8Array
 export function verifyUint8Array(a?: Uint8Array, ...b: (Uint8Array | undefined)[]): boolean {
     b = b.filter(value => value !== undefined);
     if (!a || b.length === 0) return false;
-    return (b as Uint8Array[]).every(b => nacl.verify(a, b));
+    return (b as Uint8Array[]).every(b => verify(a, b));
 }
 
 /**
