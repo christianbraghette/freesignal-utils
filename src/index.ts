@@ -1,5 +1,5 @@
 /**
- * FreeSignal protocol utilities
+ * FreeSignal Protocol
  * 
  * Copyright (C) 2025  Christian Braghette
  * 
@@ -26,7 +26,7 @@ import { verify } from "tweetnacl";
  * @param array - The input byte array.
  * @returns The UTF-8 encoded string.
  */
-export function encodeUTF8(array?: Uint8Array): string {
+export function decodeUTF8(array?: Uint8Array): string {
     return new TextDecoder().decode(array);
 }
 
@@ -36,28 +36,36 @@ export function encodeUTF8(array?: Uint8Array): string {
  * @param string - The input string.
  * @returns The resulting Uint8Array.
  */
-export function decodeUTF8(string?: string): Uint8Array {
+export function encodeUTF8(string?: string): Uint8Array {
     return new TextEncoder().encode(string);
 }
 
 /**
- * Encodes a Uint8Array into a Base64 string.
+ * Decodes a Uint8Array into a Base64 string.
  *
  * @param array - The input byte array.
  * @returns The Base64 encoded string.
  */
-export function encodeBase64(array?: Uint8Array): string {
+export function decodeBase64(array?: Uint8Array): string {
     return fromByteArray(array ?? new Uint8Array());
 }
 
 /**
- * Decodes a Base64 string into a Uint8Array.
+ * Encodes a Base64 string into a Uint8Array.
  *
  * @param string - The Base64 string.
  * @returns The decoded Uint8Array.
  */
-export function decodeBase64(string?: string): Uint8Array {
+export function encodeBase64(string?: string): Uint8Array {
     return toByteArray(string ?? "");
+}
+
+export function encodeJSON(obj: any): Uint8Array {
+    return encodeUTF8(JSON.stringify(obj));
+}
+
+export function decodeJSON<T>(arr: Uint8Array): T {
+    return JSON.parse(decodeUTF8(arr));
 }
 
 export function encodeHex(array?: Uint8Array) {
