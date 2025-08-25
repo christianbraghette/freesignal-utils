@@ -68,11 +68,11 @@ export function decodeJSON<T>(arr: Uint8Array): T {
     return JSON.parse(decodeUTF8(arr));
 }
 
-export function encodeHex(array?: Uint8Array) {
+export function decodeHex(array?: Uint8Array): string {
     return Array.from(array?.values() ?? []).map(value => value.toString(16).padStart(2, '0')).join('');
 }
 
-export function decodeHex(string?: string) {
+export function encodeHex(string?: string): Uint8Array {
     return new Uint8Array(!string ? [] :
         Array.from(string).reduce<string[]>((prev, curr, index) => {
             if (index % 2 === 0)
