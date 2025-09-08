@@ -60,12 +60,12 @@ export function encodeBase64(string?: string): Uint8Array {
     return toByteArray(string ?? "");
 }
 
-export function encodeJSON(obj: any): Uint8Array {
-    return encodeUTF8(JSON.stringify(obj));
-}
-
 export function decodeJSON<T>(arr: Uint8Array): T {
     return JSON.parse(decodeUTF8(arr));
+}
+
+export function encodeJSON(obj: any): Uint8Array {
+    return encodeUTF8(JSON.stringify(obj));
 }
 
 export function decodeHex(array?: Uint8Array): string {
@@ -89,7 +89,7 @@ export function encodeHex(string?: string): Uint8Array {
  * @param array - The input byte array.
  * @returns The resulting number.
  */
-export function numberFromUint8Array(array?: Uint8Array, endian: 'big' | 'little' = 'little'): number {
+export function numberFromArray(array?: Uint8Array, endian: 'big' | 'little' = 'little'): number {
     let total = 0;
     if (array) {
         if (endian === 'big') array = array.reverse();
@@ -106,7 +106,7 @@ export function numberFromUint8Array(array?: Uint8Array, endian: 'big' | 'little
  * @param length - The desired output length.
  * @returns A Uint8Array representing the number.
  */
-export function numberToUint8Array(number?: number, length?: number, endian: 'big' | 'little' = 'little'): Uint8Array {
+export function numberToArray(number?: number, length?: number, endian: 'big' | 'little' = 'little'): Uint8Array {
     if (!number) return new Uint8Array(length ?? 0).fill(0);
     const arr: number[] = [];
     while (number > 0) {
@@ -122,13 +122,14 @@ export function numberToUint8Array(number?: number, length?: number, endian: 'bi
  * Compare Uint8Arrays.
  * 
  * @param a - First Uint8Array to compare to.
- * @param b - Arrays to compare to the first one.
+ * @param b - Array to compare to the first one.
+ * @param c - Arrays to compare to the first one.
  * @returns A boolean value.
  */
-export function verifyUint8Array(a?: Uint8Array, ...b: (Uint8Array | undefined)[]): boolean {
-    b = b.filter(value => value !== undefined);
-    if (!a || b.length === 0) return false;
-    return (b as Uint8Array[]).every(b => verify(a, b));
+export function verifyArrays(a: Uint8Array, b: Uint8Array, ...c: Uint8Array[]): boolean {
+    const arrays = new Array<Uint8Array>().concat(a, b, ...c).filter(array => array !== undefined && array.length > 0);
+    if (arrays.length < 2) return false;
+    return arrays.every(b => verify(a, b));
 }
 
 /**
@@ -137,7 +138,7 @@ export function verifyUint8Array(a?: Uint8Array, ...b: (Uint8Array | undefined)[
  * @param arrays - Uint8Array to concat.
  * @returns A Uint8Array
  */
-export function concatUint8Array(...arrays: Uint8Array[]) {
+export function concatArrays(...arrays: Uint8Array[]) {
     const out = new Uint8Array(arrays.map(value => value.length).reduce((prev, curr) => prev + curr));
     let offset = 0;
     arrays.forEach(array => {
