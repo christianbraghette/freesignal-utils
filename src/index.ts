@@ -26,7 +26,7 @@ import { verify } from "tweetnacl";
  * @param array - The input byte array.
  * @returns The UTF-8 encoded string.
  */
-export function decodeUTF8(array?: Uint8Array): string {
+export function decodeUTF8(array: Uint8Array): string {
     return new TextDecoder().decode(array);
 }
 
@@ -36,7 +36,7 @@ export function decodeUTF8(array?: Uint8Array): string {
  * @param string - The input string.
  * @returns The resulting Uint8Array.
  */
-export function encodeUTF8(string?: string): Uint8Array {
+export function encodeUTF8(string: string): Uint8Array {
     return new TextEncoder().encode(string);
 }
 
@@ -46,8 +46,8 @@ export function encodeUTF8(string?: string): Uint8Array {
  * @param array - The input byte array.
  * @returns The Base64 encoded string.
  */
-export function decodeBase64(array?: Uint8Array): string {
-    return fromByteArray(array ?? new Uint8Array());
+export function decodeBase64(array: Uint8Array): string {
+    return fromByteArray(array);
 }
 
 /**
@@ -56,24 +56,24 @@ export function decodeBase64(array?: Uint8Array): string {
  * @param string - The Base64 string.
  * @returns The decoded Uint8Array.
  */
-export function encodeBase64(string?: string): Uint8Array {
-    return toByteArray(string ?? "");
+export function encodeBase64(string: string): Uint8Array {
+    return toByteArray(string);
 }
 
-export function decodeJSON<T>(arr: Uint8Array): T {
-    return JSON.parse(decodeUTF8(arr));
+export function decodeJSON<T>(array: Uint8Array): T {
+    return JSON.parse(decodeUTF8(array));
 }
 
 export function encodeJSON(obj: any): Uint8Array {
     return encodeUTF8(JSON.stringify(obj));
 }
 
-export function decodeHex(array?: Uint8Array): string {
-    return Array.from(array?.values() ?? []).map(value => value.toString(16).padStart(2, '0')).join('');
+export function decodeHex(array: Uint8Array): string {
+    return Array.from(array.values()).map(value => value.toString(16).padStart(2, '0')).join('');
 }
 
-export function encodeHex(string?: string): Uint8Array {
-    return new Uint8Array(!string ? [] :
+export function encodeHex(string: string): Uint8Array {
+    return new Uint8Array(
         Array.from(string).reduce<string[]>((prev, curr, index) => {
             if (index % 2 === 0)
                 prev.push(curr);
@@ -89,7 +89,7 @@ export function encodeHex(string?: string): Uint8Array {
  * @param array - The input byte array.
  * @returns The resulting number.
  */
-export function numberFromArray(array?: Uint8Array, endian: 'big' | 'little' = 'little'): number {
+export function numberFromArray(array: Uint8Array, endian: 'big' | 'little' = 'little'): number {
     let total = 0;
     if (array) {
         if (endian === 'big') array = array.reverse();
@@ -106,8 +106,7 @@ export function numberFromArray(array?: Uint8Array, endian: 'big' | 'little' = '
  * @param length - The desired output length.
  * @returns A Uint8Array representing the number.
  */
-export function numberToArray(number?: number, length?: number, endian: 'big' | 'little' = 'little'): Uint8Array {
-    if (!number) return new Uint8Array(length ?? 0).fill(0);
+export function numberToArray(number: number, length?: number, endian: 'big' | 'little' = 'little'): Uint8Array {
     const arr: number[] = [];
     while (number > 0) {
         arr.push(number & 255);
@@ -139,11 +138,5 @@ export function verifyArrays(a: Uint8Array, b: Uint8Array, ...c: Uint8Array[]): 
  * @returns A Uint8Array
  */
 export function concatArrays(...arrays: Uint8Array[]) {
-    const out = new Uint8Array(arrays.map(value => value.length).reduce((prev, curr) => prev + curr));
-    let offset = 0;
-    arrays.forEach(array => {
-        out.set(array, offset);
-        offset += array.length;
-    });
-    return out;
+    return new Uint8Array(arrays.flatMap(buffer => [...buffer]));
 }
