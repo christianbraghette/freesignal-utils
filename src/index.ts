@@ -108,6 +108,7 @@ export function numberFromArray(array: Uint8Array, endian: 'big' | 'little' = 'l
  */
 export function numberToArray(number: number, length?: number, endian: 'big' | 'little' = 'little'): Uint8Array {
     const arr: number[] = [];
+    number = Math.floor(number);
     while (number > 0) {
         arr.push(number & 255);
         number = number >>> 8;
@@ -139,4 +140,108 @@ export function verifyArrays(a: Uint8Array, b: Uint8Array, ...c: Uint8Array[]): 
  */
 export function concatArrays(...arrays: Uint8Array[]) {
     return new Uint8Array(arrays.flatMap(buffer => [...buffer]));
+}
+
+enum DataType {
+    UKNOWN = -1,
+    RAW,
+    NUMBER,
+    STRING,
+    ARRAY,
+    OBJECT
+}
+namespace DataType {
+    export function getType(type: string): DataType {
+        return Object.values(DataType).indexOf(type.toLocaleUpperCase());
+    }
+
+    export function getName(type: DataType): string {
+        return DataType[type].toLowerCase();
+    }
+
+    export function from(data: any): DataType {
+        if (data instanceof Uint8Array)
+            return DataType.RAW;
+        return getType(typeof data);
+    }
+}
+
+/** */
+export function encodeData(obj: any) {
+    const _type = DataType.from(obj);
+    let data: Uint8Array
+    switch (_type) {
+        case DataType.RAW:
+            data = obj as Uint8Array;
+            break;
+
+        case DataType.NUMBER:
+            data = numberToArray(_type);
+            break;
+
+        case DataType.STRING:
+            data = encodeUTF8(obj as string);
+            break;
+
+        case DataType.ARRAY:
+            data = concatArrays(...Array.from(obj as any[]).flatMap(value => {
+                const data = encodeData(value);
+                return [numberToArray(data.length, 8), data]
+            }));
+            break;
+
+        case DataType.OBJECT:
+            data = encodeJSON(obj);
+            break;
+
+        default:
+            throw new Error("Uknown type");
+    }
+    return concatArrays(numberToArray(_type), data);
+}
+
+/** */
+export function decodeData<T>(array: Uint8Array): T {
+    const type = array[0];
+    let rawData = array.subarray(1), data: T;
+    switch (type) {
+        case DataType.RAW:
+            data = rawData as T;
+            break;
+
+        case DataType.NUMBER:
+            data = numberFromArray(rawData) as T;
+            break;
+
+        case DataType.STRING:
+            data = decodeUTF8(rawData) as T;
+            break;
+
+        case DataType.ARRAY:
+            const arrayData: any[] = [];
+            let offset = 0;
+            while (offset < rawData.length) {
+                const length = rawData.subarray(offset, offset + 8);
+                if (length.length < 8)
+                    throw new Error('Invalid data length');
+                const messageLength = numberFromArray(length);
+                offset += 8;
+                if (offset + messageLength > rawData.length) {
+                    throw new Error('Invalid data length');
+                }
+                arrayData.push(rawData.subarray(offset, offset + messageLength));
+                offset += messageLength;
+            }
+            data = arrayData as T;
+            break;
+
+        case DataType.OBJECT:
+            data = decodeJSON(rawData);
+            break;
+
+        default:
+            throw new Error('Invalid data format');
+    }
+
+    return data;
 }
