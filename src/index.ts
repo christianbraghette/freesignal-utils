@@ -91,10 +91,10 @@ export function encodeHex(string: string): Uint8Array {
  */
 export function numberFromArray(array: Uint8Array, endian: 'big' | 'little' = 'little'): number {
     const outArray = new Uint8Array(8).fill(0);
-    if (endian === 'little')
+    if (endian === 'big')
         array = array.reverse();
-    outArray.set(array, 8 - array.length);
-    return new Float64Array(outArray.buffer)[0];
+    outArray.set(array);
+    return Number(new BigUint64Array(outArray.buffer)[0]);
 }
 
 /**
@@ -104,11 +104,13 @@ export function numberFromArray(array: Uint8Array, endian: 'big' | 'little' = 'l
  * @param length - The desired output length.
  * @returns A Uint8Array representing the number.
  */
-export function numberToArray(number: number, length: number = 8, endian: 'big' | 'little' = 'little'): Uint8Array {
-    let array = new Uint8Array(new Float64Array(1).fill(number).buffer);
-    if (length < 8)
-        array = array.slice(8 - length);
-    return endian === 'little' ? array.reverse() : array;
+export function numberToArray(number: number, length?: number, endian: 'big' | 'little' = 'little'): Uint8Array {
+    const bigInt = BigInt(number);
+    let array = new Uint8Array(new BigUint64Array(1).fill(bigInt).buffer);
+    if (length) {
+        array = array.slice(0, length);
+    }
+    return endian === 'big' ? array.reverse() : array;
 }
 
 /**
