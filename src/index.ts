@@ -179,7 +179,7 @@ export function encodeData(obj: any) {
         case DataType.ARRAY:
             data = concatArrays(...Array.from(obj as any[]).flatMap(value => {
                 const data = encodeData(value);
-                return [numberToArray(data.length, 8), data]
+                return [numberToArray(data.length), data]
             }));
             break;
 
@@ -190,7 +190,7 @@ export function encodeData(obj: any) {
         default:
             throw new Error("Uknown type");
     }
-    return concatArrays(numberToArray(_type), data);
+    return concatArrays(numberToArray(_type, 1), data);
 }
 
 /** */
