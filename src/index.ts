@@ -89,7 +89,7 @@ export function encodeHex(string: string): Uint8Array {
  * @param array - The input byte array.
  * @returns The resulting number.
  */
-export function numberFromArray(array: Uint8Array, endian: 'big' | 'little' = 'little'): number {
+export function bytesToNumber(array: Uint8Array, endian: 'big' | 'little' = 'little'): number {
     const outArray = new Uint8Array(8).fill(0);
     if (endian === 'big')
         array = array.reverse();
@@ -104,7 +104,7 @@ export function numberFromArray(array: Uint8Array, endian: 'big' | 'little' = 'l
  * @param length - The desired output length.
  * @returns A Uint8Array representing the number.
  */
-export function numberToArray(number: number, length?: number, endian: 'big' | 'little' = 'little'): Uint8Array {
+export function numberToBytes(number: number, length?: number, endian: 'big' | 'little' = 'little'): Uint8Array {
     const bigInt = BigInt(number);
     let array = new Uint8Array(new BigUint64Array(1).fill(bigInt).buffer);
     if (length) {
@@ -121,7 +121,7 @@ export function numberToArray(number: number, length?: number, endian: 'big' | '
  * @param c - Arrays to compare to the first one.
  * @returns A boolean value.
  */
-export function verifyArrays(a: Uint8Array, b: Uint8Array, ...c: Uint8Array[]): boolean {
+export function compareBytes(a: Uint8Array, b: Uint8Array, ...c: Uint8Array[]): boolean {
     const arrays = new Array<Uint8Array>().concat(a, b, ...c).filter(array => array !== undefined && array.length > 0);
     if (arrays.length < 2) return false;
     return arrays.every(b => verify(a, b));
@@ -133,7 +133,7 @@ export function verifyArrays(a: Uint8Array, b: Uint8Array, ...c: Uint8Array[]): 
  * @param arrays - Uint8Array to concat.
  * @returns A Uint8Array
  */
-export function concatArrays(...arrays: Uint8Array[]) {
+export function concatBytes(...arrays: Uint8Array[]) {
     return new Uint8Array(arrays.flatMap(buffer => [...buffer]));
 }
 
@@ -171,7 +171,7 @@ export function encodeData(obj: any) {
             break;
 
         case DataType.NUMBER:
-            data = numberToArray(_type);
+            data = numberToBytes(_type);
             break;
 
         case DataType.STRING:
@@ -179,9 +179,9 @@ export function encodeData(obj: any) {
             break;
 
         case DataType.ARRAY:
-            data = concatArrays(...Array.from(obj as any[]).flatMap(value => {
+            data = concatBytes(...Array.from(obj as any[]).flatMap(value => {
                 const data = encodeData(value);
-                return [numberToArray(data.length), data]
+                return [numberToBytes(data.length), data]
             }));
             break;
 
@@ -192,7 +192,7 @@ export function encodeData(obj: any) {
         default:
             throw new Error("Uknown type");
     }
-    return concatArrays(numberToArray(_type, 1), data);
+    return concatBytes(numberToBytes(_type, 1), data);
 }
 
 /** */
@@ -205,7 +205,7 @@ export function decodeData<T>(array: Uint8Array): T {
             break;
 
         case DataType.NUMBER:
-            data = numberFromArray(rawData) as T;
+            data = bytesToNumber(rawData) as T;
             break;
 
         case DataType.STRING:
@@ -219,7 +219,7 @@ export function decodeData<T>(array: Uint8Array): T {
                 const length = rawData.subarray(offset, offset + 8);
                 if (length.length < 8)
                     throw new Error('Invalid data length');
-                const messageLength = numberFromArray(length);
+                const messageLength = bytesToNumber(length);
                 offset += 8;
                 if (offset + messageLength > rawData.length) {
                     throw new Error('Invalid data length');
