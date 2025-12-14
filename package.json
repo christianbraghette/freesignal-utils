@@ -1,6 +1,6 @@
 {
   "name": "@freesignal/utils",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "Utils package for FreeSignal protocol",
   "homepage": "https://github.com/christianbraghette/freesignal-utils#readme",
   "bugs": {
@@ -12,7 +12,7 @@
   },
   "license": "GPL-3.0-or-later",
   "author": "Christian Braghette",
-  "type": "commonjs",
+  "type": "module",
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -27,10 +27,11 @@
     "prepare": "tsc"
   },
   "dependencies": {
-    "base64-js": "^1.5.1",
-    "tweetnacl": "^1.0.3"
+    "@msgpack/msgpack": "^3.1.2",
+    "libsodium-wrappers": "^0.7.15"
   },
   "devDependencies": {
+    "@types/libsodium-wrappers": "^0.7.14",
     "@types/node": "^22.15.21"
   }
 }

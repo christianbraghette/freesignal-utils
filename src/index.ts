@@ -17,8 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>
  */
 
-import { toByteArray, fromByteArray } from "base64-js"
-import { verify } from "tweetnacl";
+import { memcmp, to_base64, from_base64, to_hex, from_hex, to_string, from_string, ready } from "libsodium-wrappers";
+import { encode, decode } from '@msgpack/msgpack';
+
+await ready;
 
 /**
  * Decodes a Uint8Array into a UTF-8 string.
@@ -27,7 +29,7 @@ import { verify } from "tweetnacl";
  * @returns The UTF-8 encoded string.
  */
 export function decodeUTF8(array: Uint8Array): string {
-    return new TextDecoder().decode(array);
+    return to_string(array);
 }
 
 /**
@@ -37,7 +39,7 @@ export function decodeUTF8(array: Uint8Array): string {
  * @returns The resulting Uint8Array.
  */
 export function encodeUTF8(string: string): Uint8Array {
-    return new TextEncoder().encode(string);
+    return from_string(string);
 }
 
 /**
@@ -47,7 +49,7 @@ export function encodeUTF8(string: string): Uint8Array {
  * @returns The Base64 encoded string.
  */
 export function decodeBase64(array: Uint8Array): string {
-    return fromByteArray(array);
+    return to_base64(array);
 }
 
 /**
@@ -57,7 +59,7 @@ export function decodeBase64(array: Uint8Array): string {
  * @returns The decoded Uint8Array.
  */
 export function encodeBase64(string: string): Uint8Array {
-    return toByteArray(string);
+    return from_base64(string);
 }
 
 export function decodeJSON<T>(array: Uint8Array): T {
@@ -69,18 +71,11 @@ export function encodeJSON(obj: any): Uint8Array {
 }
 
 export function decodeHex(array: Uint8Array): string {
-    return Array.from(array.values()).map(value => value.toString(16).padStart(2, '0')).join('');
+    return to_hex(array);
 }
 
 export function encodeHex(string: string): Uint8Array {
-    return new Uint8Array(
-        Array.from(string).reduce<string[]>((prev, curr, index) => {
-            if (index % 2 === 0)
-                prev.push(curr);
-            else
-                prev[prev.length - 1] += curr;
-            return prev;
-        }, []).map(value => Number.parseInt(value, 16)));
+    return from_hex(string);
 }
 
 /**
@@ -124,7 +119,7 @@ export function numberToBytes(number: number, length?: number, endian: 'big' | '
 export function compareBytes(a: Uint8Array, b: Uint8Array, ...c: Uint8Array[]): boolean {
     const arrays = new Array<Uint8Array>().concat(a, b, ...c).filter(array => array !== undefined && array.length > 0);
     if (arrays.length < 2) return false;
-    return arrays.every(b => verify(a, b));
+    return arrays.every(b => memcmp(a, b));
 }
 
 /**
@@ -137,106 +132,12 @@ export function concatBytes(...arrays: Uint8Array[]) {
     return new Uint8Array(arrays.flatMap(buffer => [...buffer]));
 }
 
-enum DataType {
-    UKNOWN = -1,
-    RAW,
-    NUMBER,
-    STRING,
-    ARRAY,
-    OBJECT
-}
-namespace DataType {
-    export function getType(type: string): DataType {
-        return Object.values(DataType).indexOf(type.toLocaleUpperCase());
-    }
-
-    export function getName(type: DataType): string {
-        return DataType[type].toLowerCase();
-    }
-
-    export function from(data: any): DataType {
-        if (data instanceof Uint8Array)
-            return DataType.RAW;
-        return getType(typeof data);
-    }
-}
-
 /** */
 export function encodeData(obj: any) {
-    const _type = DataType.from(obj);
-    let data: Uint8Array
-    switch (_type) {
-        case DataType.RAW:
-            data = obj as Uint8Array;
-            break;
-
-        case DataType.NUMBER:
-            data = numberToBytes(_type);
-            break;
-
-        case DataType.STRING:
-            data = encodeUTF8(obj as string);
-            break;
-
-        case DataType.ARRAY:
-            data = concatBytes(...Array.from(obj as any[]).flatMap(value => {
-                const data = encodeData(value);
-                return [numberToBytes(data.length), data]
-            }));
-            break;
-
-        case DataType.OBJECT:
-            data = encodeJSON(obj);
-            break;
-
-        default:
-            throw new Error("Uknown type");
-    }
-    return concatBytes(numberToBytes(_type, 1), data);
+    return encode(obj);
 }
 
 /** */
 export function decodeData<T>(array: Uint8Array): T {
-    const type = array[0];
-    let rawData = array.subarray(1), data: T;
-    switch (type) {
-        case DataType.RAW:
-            data = rawData as T;
-            break;
-
-        case DataType.NUMBER:
-            data = bytesToNumber(rawData) as T;
-            break;
-
-        case DataType.STRING:
-            data = decodeUTF8(rawData) as T;
-            break;
-
-        case DataType.ARRAY:
-            const arrayData: any[] = [];
-            let offset = 0;
-            while (offset < rawData.length) {
-                const length = rawData.subarray(offset, offset + 8);
-                if (length.length < 8)
-                    throw new Error('Invalid data length');
-                const messageLength = bytesToNumber(length);
-                offset += 8;
-                if (offset + messageLength > rawData.length) {
-                    throw new Error('Invalid data length');
-                }
-                arrayData.push(rawData.subarray(offset, offset + messageLength));
-                offset += messageLength;
-            }
-            data = arrayData as T;
-            break;
-
-        case DataType.OBJECT:
-            data = decodeJSON(rawData);
-            break;
-
-        default:
-            throw new Error('Invalid data format');
-    }
-
-    return data;
+    return decode(array) as any;
 }
