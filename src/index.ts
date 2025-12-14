@@ -17,10 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>
  */
 
-import { memcmp, to_base64, from_base64, to_hex, from_hex, to_string, from_string, ready } from "libsodium-wrappers";
+import sodium from "libsodium-wrappers";
 import { encode, decode } from '@msgpack/msgpack';
 
-await ready;
+await sodium.ready;
 
 /**
  * Decodes a Uint8Array into a UTF-8 string.
@@ -29,7 +29,7 @@ await ready;
  * @returns The UTF-8 encoded string.
  */
 export function decodeUTF8(array: Uint8Array): string {
-    return to_string(array);
+    return sodium.to_string(array);
 }
 
 /**
@@ -39,7 +39,7 @@ export function decodeUTF8(array: Uint8Array): string {
  * @returns The resulting Uint8Array.
  */
 export function encodeUTF8(string: string): Uint8Array {
-    return from_string(string);
+    return sodium.from_string(string);
 }
 
 /**
@@ -49,7 +49,7 @@ export function encodeUTF8(string: string): Uint8Array {
  * @returns The Base64 encoded string.
  */
 export function decodeBase64(array: Uint8Array): string {
-    return to_base64(array);
+    return sodium.to_base64(array);
 }
 
 /**
@@ -59,7 +59,7 @@ export function decodeBase64(array: Uint8Array): string {
  * @returns The decoded Uint8Array.
  */
 export function encodeBase64(string: string): Uint8Array {
-    return from_base64(string);
+    return sodium.from_base64(string);
 }
 
 export function decodeJSON<T>(array: Uint8Array): T {
@@ -71,11 +71,11 @@ export function encodeJSON(obj: any): Uint8Array {
 }
 
 export function decodeHex(array: Uint8Array): string {
-    return to_hex(array);
+    return sodium.to_hex(array);
 }
 
 export function encodeHex(string: string): Uint8Array {
-    return from_hex(string);
+    return sodium.from_hex(string);
 }
 
 /**
@@ -119,7 +119,7 @@ export function numberToBytes(number: number, length?: number, endian: 'big' | '
 export function compareBytes(a: Uint8Array, b: Uint8Array, ...c: Uint8Array[]): boolean {
     const arrays = new Array<Uint8Array>().concat(a, b, ...c).filter(array => array !== undefined && array.length > 0);
     if (arrays.length < 2) return false;
-    return arrays.every(b => memcmp(a, b));
+    return arrays.every(b => sodium.memcmp(a, b));
 }
 
 /**
