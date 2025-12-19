@@ -1,6 +1,6 @@
 {
   "name": "@freesignal/utils",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Utils package for FreeSignal protocol",
   "homepage": "https://github.com/christianbraghette/freesignal-utils#readme",
   "bugs": {

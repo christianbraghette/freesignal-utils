@@ -49,7 +49,7 @@ export function encodeUTF8(string: string): Uint8Array {
  * @returns The Base64 encoded string.
  */
 export function decodeBase64(array: Uint8Array): string {
-    return sodium.to_base64(array);
+    return sodium.to_base64(array, sodium.base64_variants.ORIGINAL);
 }
 
 /**
@@ -59,16 +59,24 @@ export function decodeBase64(array: Uint8Array): string {
  * @returns The decoded Uint8Array.
  */
 export function encodeBase64(string: string): Uint8Array {
-    return sodium.from_base64(string);
+    return sodium.from_base64(string, sodium.base64_variants.ORIGINAL);
 }
 
-export function decodeJSON<T>(array: Uint8Array): T {
+export function decodeBase64URL(array: Uint8Array): string {
+    return sodium.to_base64(array, sodium.base64_variants.URLSAFE_NO_PADDING);
+}
+
+export function encodeBase64URL(string: string): Uint8Array {
+    return sodium.from_base64(string, sodium.base64_variants.URLSAFE_NO_PADDING);
+}
+
+/*export function decodeJSON<T>(array: Uint8Array): T {
     return JSON.parse(decodeUTF8(array));
 }
 
 export function encodeJSON(obj: any): Uint8Array {
     return encodeUTF8(JSON.stringify(obj));
-}
+}*/
 
 export function decodeHex(array: Uint8Array): string {
     return sodium.to_hex(array);
